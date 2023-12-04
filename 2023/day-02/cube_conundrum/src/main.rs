@@ -6,9 +6,7 @@ fn main() {
     for line in input.lines() {
         let gs = GameSummary::from_str(line).expect("line should be parsed as a game summary");
         let max_summary = gs.round_summaries.iter().fold(RoundSummary{red: 0, green: 0, blue: 0}, max_round_summary);
-        if valid_game(max_summary) {
-            sum += gs.game_tag;
-        }
+        sum = calculate_next_sum_part_two(sum, max_summary, gs);
     }
     println!("total: {}", sum);
 }
@@ -24,6 +22,16 @@ fn max_round_summary(accumulator: RoundSummary, next: &RoundSummary) -> RoundSum
 }
 fn valid_game(summary: RoundSummary) -> bool {
     summary.red <= 12 && summary.green <= 13 && summary.blue <= 14
+}
+fn calculate_next_sum_part_one(sum: u64, max_summary: RoundSummary, curr_gs: GameSummary) -> u64 {
+    if valid_game(max_summary) {
+        sum + curr_gs.game_tag
+    } else {
+        sum
+    }
+}
+fn calculate_next_sum_part_two(sum: u64, max_summary: RoundSummary, _curr_gs: GameSummary) -> u64 {
+    sum + max_summary.power()
 }
 
 struct GameSummary {
@@ -68,6 +76,9 @@ struct RoundSummary {
 impl RoundSummary {
     fn from_rgb(rgb: (u64, u64, u64)) -> Self {
         RoundSummary { red: rgb.0, green: rgb.1, blue: rgb.2 }
+    }
+    fn power(&self) -> u64 {
+        self.red * self.green * self.blue
     }
 }
 impl FromStr for RoundSummary {
@@ -121,6 +132,11 @@ mod tests {
         assert!(result.round_summaries.first().is_some());
         assert_eq!(result.round_summaries.first().unwrap(), &RoundSummary::from_rgb((0, 1, 4)));
         assert_eq!(result.round_summaries.get(1).unwrap(), &RoundSummary::from_rgb((1, 2, 1)));
+    }
+    #[test]
+    fn power_works() {
+        assert_eq!(RoundSummary::from_rgb((4, 2, 6)).power(), 48);
+        assert_eq!(RoundSummary::from_rgb((20, 13, 6)).power(), 1560);
     }
 //     #[test]
 //     fn experiment() {
